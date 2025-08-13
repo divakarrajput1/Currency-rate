@@ -6,33 +6,28 @@ import (
 	"time"
 )
 
-// CacheItem represents a cached exchange rate with expiration
 type CacheItem struct {
 	Rate      float64
 	ExpiresAt time.Time
 }
 
-// MemoryCache implements an in-memory cache for exchange rates
 type MemoryCache struct {
 	data map[string]CacheItem
 	mu   sync.RWMutex
 	ttl  time.Duration
 }
 
-// NewMemoryCache creates a new in-memory cache with specified TTL
 func NewMemoryCache(ttl time.Duration) *MemoryCache {
 	cache := &MemoryCache{
 		data: make(map[string]CacheItem),
 		ttl:  ttl,
 	}
 
-	// Start background cleanup goroutine
 	go cache.cleanupExpired()
 
 	return cache
 }
 
-// generateKey creates a cache key for a currency pair and date
 func (c *MemoryCache) generateKey(from, to, date string) string {
 	if date == "" {
 		return fmt.Sprintf("%s_%s_latest", from, to)
@@ -40,7 +35,6 @@ func (c *MemoryCache) generateKey(from, to, date string) string {
 	return fmt.Sprintf("%s_%s_%s", from, to, date)
 }
 
-// Get retrieves an exchange rate from cache
 func (c *MemoryCache) Get(from, to, date string) (float64, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -52,16 +46,13 @@ func (c *MemoryCache) Get(from, to, date string) (float64, bool) {
 		return 0, false
 	}
 
-	// Check if item has expired
 	if time.Now().After(item.ExpiresAt) {
-		// Item expired, but we'll let the cleanup goroutine handle removal
 		return 0, false
 	}
 
 	return item.Rate, true
 }
 
-// Set stores an exchange rate in cache
 func (c *MemoryCache) Set(from, to, date string, rate float64) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -73,7 +64,6 @@ func (c *MemoryCache) Set(from, to, date string, rate float64) {
 	}
 }
 
-// Delete removes an exchange rate from cache
 func (c *MemoryCache) Delete(from, to, date string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -82,7 +72,6 @@ func (c *MemoryCache) Delete(from, to, date string) {
 	delete(c.data, key)
 }
 
-// Clear removes all items from cache
 func (c *MemoryCache) Clear() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -90,7 +79,6 @@ func (c *MemoryCache) Clear() {
 	c.data = make(map[string]CacheItem)
 }
 
-// Size returns the number of items in cache
 func (c *MemoryCache) Size() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -98,7 +86,6 @@ func (c *MemoryCache) Size() int {
 	return len(c.data)
 }
 
-// GetStats returns cache statistics
 func (c *MemoryCache) GetStats() map[string]interface{} {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -123,9 +110,8 @@ func (c *MemoryCache) GetStats() map[string]interface{} {
 	}
 }
 
-// cleanupExpired removes expired items from cache periodically
 func (c *MemoryCache) cleanupExpired() {
-	ticker := time.NewTicker(5 * time.Minute) // Cleanup every 5 minutes
+	ticker := time.NewTicker(5 * time.Minute) 
 	defer ticker.Stop()
 
 	for {
@@ -144,7 +130,6 @@ func (c *MemoryCache) cleanupExpired() {
 	}
 }
 
-// CacheInterface defines the interface for caching operations
 type CacheInterface interface {
 	Get(from, to, date string) (float64, bool)
 	Set(from, to, date string, rate float64)
