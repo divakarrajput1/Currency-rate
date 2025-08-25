@@ -413,11 +413,4 @@ spec:
 3. Add tests for new functionality
 4. Ensure all tests pass
 5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-**Built with ❤️ using Go, Gin, Docker, and best practices for production-ready services.** 
+ 
